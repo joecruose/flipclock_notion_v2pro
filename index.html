@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notion Tall Fixed Clock</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    /* DYNAMIC COLOR VARIABLE */
+    :root {
+      /* Default color (White) if no URL parameter is provided */
+      --main-color: #ffffff; 
+    }
+
+    /* 1. LAYOUT RESET */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden; 
+      background-color: transparent;
+      font-family: 'Oswald', sans-serif; 
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 2. WRAPPER */
+    #scaler {
+      width: 264px;
+      height: 195px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform-origin: center center; 
+    }
+
+    .clock-container {
+      display: flex;
+      gap: 4px; 
+    }
+
+    /* 3. CARDS */
+    .card {
+      position: relative;
+      width: 130px; 
+      height: 195px; 
+      
+      /* DYNAMIC BACKGROUND: Mixes the --main-color with dark greys for a subtle tint */
+      background: linear-gradient(to bottom, 
+        color-mix(in srgb, var(--main-color) 12%, #2a2a2a) 50%, 
+        color-mix(in srgb, var(--main-color) 4%, #111111) 50%
+      );
+      
+      border-radius: 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* 4. NUMBERS */
+    .number {
+      font-family: 'Oswald', sans-serif; 
+      font-size: 100px; 
+      font-weight: 700; 
+      line-height: 1;
+      letter-spacing: 0px; 
+      z-index: 1;
+      font-variant-numeric: tabular-nums;
+      transform: scaleY(1.10); 
+      padding-bottom: 10px; 
+      
+      /* DYNAMIC TEXT COLOR */
+      color: var(--main-color);
+    }
+
+    /* 5. SPLIT LINE */
+    .card::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: rgba(0,0,0,0.8);
+      z-index: 5;
+    }
+
+    /* 6. LABELS */
+    .label {
+      position: absolute;
+      bottom: 14px;
+      font-family: 'Helvetica Neue', sans-serif; 
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      z-index: 6;
+      letter-spacing: 0.5px;
+
+      /* DYNAMIC LABEL COLOR: Mixes the main color with grey for a muted accent */
+      color: color-mix(in srgb, var(--main-color) 35%, #888888);
+    }
+    .label.left { left: 16px; }
+    .label.right { right: 16px; }
+
+  </style>
+</head>
+<body>
+
+  <div id="scaler">
+    <div class="clock-container">
+      <div class="card">
+        <div class="number" id="hour">00</div>
+        <div class="label left" id="ampm">AM</div>
+      </div>
+      <div class="card">
+        <div class="number" id="minute">00</div>
+        <div class="label right" id="day">SUN</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* DYNAMIC COLOR LOGIC */
+    function applyCustomColor() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const customColor = urlParams.get('color');
+
+      if (customColor) {
+        // Injects the chosen hex code into the CSS variable at the root level
+        document.documentElement.style.setProperty('--main-color', `#${customColor}`);
+      }
+    }
+    
+    // Run color logic immediately
+    applyCustomColor();
+
+    /* CLOCK LOGIC */
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      const dayIndex = now.getDay();
+      
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; 
+      
+      const strHours = hours < 10 ? '0' + hours : hours;
+      const strMinutes = minutes < 10 ? '0' + minutes : minutes;
+      
+      const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+      
+      document.getElementById('hour').textContent = strHours;
+      document.getElementById('minute').textContent = strMinutes;
+      document.getElementById('ampm').textContent = ampm;
+      document.getElementById('day').textContent = days[dayIndex];
+    }
+
+    /* RESIZE LOGIC */
+    function resizeClock() {
+      const scaler = document.getElementById('scaler');
+      const baseWidth = 264; 
+      const baseHeight = 195;
+      const availableWidth = window.innerWidth;
+      const availableHeight = window.innerHeight;
+      
+      const scaleX = availableWidth / baseWidth;
+      const scaleY = availableHeight / baseHeight;
+      
+      const scale = Math.min(scaleX, scaleY) * 0.98; 
+      
+      scaler.style.transform = `scale(${scale})`;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    window.addEventListener('resize', resizeClock);
+    resizeClock();
+  </script>
+
+</body>
+</html>
