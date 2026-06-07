@@ -128,25 +128,46 @@
   </div>
 
   <script>
-    /* DUAL COLOR LOGIC */
+/* SECURE TOKEN LOGIC */
     function applyCustomColors() {
       const urlParams = new URLSearchParams(window.location.search);
-      const bgColor = urlParams.get('bg');
-      const textColor = urlParams.get('text');
+      const token = urlParams.get('token');
 
-      // 1. If background color is provided
-      if (bgColor) {
-        // Set the top half to the EXACT hex code provided
-        document.documentElement.style.setProperty('--bg-top', `#${bgColor}`);
-        // Create a realistic shadow for the bottom half by mixing 25% black into it
-        document.documentElement.style.setProperty('--bg-bottom', `color-mix(in srgb, #${bgColor} 75%, black)`);
+      // 1. If there is no token, lock the widget
+      if (!token) {
+        document.body.innerHTML = '<div style="color: #808080; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px;">🔒 Valid configuration token required.</div>';
+        return false;
       }
 
-      // 2. If text color is provided
-      if (textColor) {
-        // Set the numbers to the EXACT hex code provided
-        document.documentElement.style.setProperty('--text-color', `#${textColor}`);
+      // 2. Try to decode the token
+      try {
+        // Decode from Base64 and parse the JSON string
+        const decoded = JSON.parse(atob(token));
+        
+        // Ensure both background ('b') and text ('t') exist in the token
+        if (decoded.b && decoded.t) {
+          document.documentElement.style.setProperty('--bg-top', `#${decoded.b}`);
+          document.documentElement.style.setProperty('--bg-bottom', `color-mix(in srgb, #${decoded.b} 75%, black)`);
+          document.documentElement.style.setProperty('--text-color', `#${decoded.t}`);
+          return true; // Token is valid
+        } else {
+          throw new Error("Corrupted Token");
+        }
+      } catch (e) {
+        // If they try to type random garbage into the token parameter, lock it
+        document.body.innerHTML = '<div style="color: #808080; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px;">⚠️ Invalid or corrupted token.</div>';
+        return false;
       }
+    }
+    
+    // Only run the clock if the token passes the security check
+    const isAuthorized = applyCustomColors();
+    
+    if (isAuthorized) {
+      setInterval(updateClock, 1000);
+      updateClock();
+      window.addEventListener('resize', resizeClock);
+      resizeClock();
     }
     
     applyCustomColors();
