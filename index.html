@@ -128,33 +128,32 @@
   </div>
 
   <script>
-/* SECURE TOKEN LOGIC */
+/* SECURE DECODING LOGIC */
     function applyCustomColors() {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
 
-      // 1. If there is no token, lock the widget
       if (!token) {
         document.body.innerHTML = '<div style="color: #808080; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px;">🔒 Valid configuration token required.</div>';
         return false;
       }
 
-      // 2. Try to decode the token
       try {
-        // Decode from Base64 and parse the JSON string
         const decoded = JSON.parse(atob(token));
         
-        // Ensure both background ('b') and text ('t') exist in the token
-        if (decoded.b && decoded.t) {
-          document.documentElement.style.setProperty('--bg-top', `#${decoded.b}`);
-          document.documentElement.style.setProperty('--bg-bottom', `color-mix(in srgb, #${decoded.b} 75%, black)`);
-          document.documentElement.style.setProperty('--text-color', `#${decoded.t}`);
-          return true; // Token is valid
+        if (decoded.c1 && decoded.c2) {
+          // Decodes the Base-36 string back into a standard hex color
+          const bgHex = parseInt(decoded.c1, 36).toString(16).padStart(6, '0');
+          const textHex = parseInt(decoded.c2, 36).toString(16).padStart(6, '0');
+
+          document.documentElement.style.setProperty('--bg-top', `#${bgHex}`);
+          document.documentElement.style.setProperty('--bg-bottom', `color-mix(in srgb, #${bgHex} 75%, black)`);
+          document.documentElement.style.setProperty('--text-color', `#${textHex}`);
+          return true;
         } else {
           throw new Error("Corrupted Token");
         }
       } catch (e) {
-        // If they try to type random garbage into the token parameter, lock it
         document.body.innerHTML = '<div style="color: #808080; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px;">⚠️ Invalid or corrupted token.</div>';
         return false;
       }
