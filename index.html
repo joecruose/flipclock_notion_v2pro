@@ -32,6 +32,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      transition: background-color 0.3s ease; /* Added a smooth transition for the background */
     }
 
     /* 2. WRAPPER */
@@ -128,7 +129,7 @@
   </div>
 
   <script>
-/* SECURE DECODING LOGIC */
+    /* SECURE DECODING LOGIC */
     function applyCustomColors() {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
@@ -149,6 +150,14 @@
           document.documentElement.style.setProperty('--bg-top', `#${bgHex}`);
           document.documentElement.style.setProperty('--bg-bottom', `color-mix(in srgb, #${bgHex} 75%, black)`);
           document.documentElement.style.setProperty('--text-color', `#${textHex}`);
+          
+          // Apply Notion Dark Mode if the dm flag is set to 1
+          if (decoded.dm === 1) {
+            document.body.style.backgroundColor = '#191919';
+          } else {
+            document.body.style.backgroundColor = 'transparent';
+          }
+
           return true;
         } else {
           throw new Error("Corrupted Token");
@@ -168,8 +177,6 @@
       window.addEventListener('resize', resizeClock);
       resizeClock();
     }
-    
-    applyCustomColors();
 
     /* CLOCK LOGIC */
     function updateClock() {
@@ -208,12 +215,6 @@
       
       scaler.style.transform = `scale(${scale})`;
     }
-
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    window.addEventListener('resize', resizeClock);
-    resizeClock();
   </script>
 
 </body>
